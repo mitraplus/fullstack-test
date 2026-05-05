@@ -1,4 +1,11 @@
-# Mitraplus — Kualifikasi Rekrutmen ERP Web (Node · React · GitHub)
+<p align="center">
+  <span style="display:inline-flex; align-items:center; justify-content:center; gap:10px;">
+    <img src="./logo_mitraplus.webp" alt="Mitraplus Logo" width="45" />
+    <img src="./logo_mitraplus_typography.png" alt="Mitraplus Typography" width="220" />
+  </span>
+</p>
+
+<h1 align="center">Test Fullstack Mitraplus</h1>
 
 
 Tugas yang harus diselesaikan: modul **Master Barang** dari database, API (Express + Sequelize), sampai React yang **memanggil API** (bukan mock data). Baca dokumen ini sampai habis sebelum mulai mengerjakan.
@@ -31,20 +38,22 @@ Kami mencari **fullstack**: API REST dengan Node (Express), database MSSQL atau 
 
 ### 2.1 Wajib
 
-- Clone repo, buat **branch fitur** dengan nama yang jelas (mis. `feature/master-barang`).
+- Fork repo `mitraplus/fullstack-test` ke akun GitHub Anda.
+- Clone repo hasil fork, lalu buat **branch fitur** dengan nama yang jelas (mis. `feature/master-barang`).
 - **Pesan commit**: jelaskan apa yang berubah dan mengapa — hindari satu kata kosong seperti `fix` atau `update` berulang.
-- **Pull Request** ke branch utama: jelaskan tujuan, cara jalankan aplikasi, env atau migrasi baru bila ada.
+- **Pull Request** dari fork ke repo utama (`mitraplus/fullstack-test`, branch `main`): jelaskan tujuan, cara jalankan aplikasi, env atau migrasi baru bila ada.
 - **`.gitignore`** wajib mencakup `.env`, `node_modules/`, hasil build. **Jangan** commit data rahasia.
 
 ### 2.2 Struktur branch
 
 ```
-main                          ← branch utama (protected)
-  └── feature/master-barang   ← branch kerja rekrutan
-        └── PR → main (deskripsi lengkap)
+mitraplus/fullstack-test:main                     ← branch utama (protected)
+  └── (fork) kandidat/fullstack-test:main         ← repo fork kandidat
+        └── feature/master-barang                 ← branch kerja rekrutan
+              └── PR → mitraplus/fullstack-test:main (deskripsi lengkap)
 ```
 
-Kirim **link PR**, bukan ZIP. Kami akan membaca diff, riwayat commit, dan isi deskripsi PR.
+Kirim **link PR**, bukan ZIP. Sertakan juga **link repository fork** Anda. Kami akan membaca diff, riwayat commit, dan isi deskripsi PR.
 
 ---
 
@@ -240,7 +249,7 @@ Checklist dari nol sampai PR. Reviewer harus bisa mengulang hanya mengikuti **RE
 5. **Error duplikat** — `POST` lagi dengan `kode_barang` sama → BE **400** + `errors` → FE tunjukkan di field kode.
 6. **Ubah** — Load `GET /api/barang/:id` → simpan `PUT` → sukses kembali ke daftar.
 7. **Nonaktif / hapus** — Konfirmasi → `DELETE /api/barang/:id` (soft delete `is_aktif=false`) → UI mencerminkan status baru.
-8. **PR** — Push branch → PR ke `main` → deskripsi singkat + cara tes + kebutuhan env + screenshot daftar & form.
+8. **PR** — Push branch ke fork → buka PR dari fork ke `mitraplus/fullstack-test:main` → deskripsi singkat + cara tes + kebutuhan env + screenshot daftar & form.
 
 ---
 
@@ -275,8 +284,9 @@ Total **100 poin**; angka per blok dapat disesuaikan secara internal.
 
 ### 7.2 Ketentuan submission
 
-- Kirim **link PR** ke repo yang ditentukan — **bukan** arsip ZIP.
-- Target merge: `main` dari branch kerja (mis. `feature/master-barang`).
+- Kirim **link PR** dari fork ke repo utama (`mitraplus/fullstack-test`) — **bukan** arsip ZIP.
+- Sertakan **link repository fork** Anda.
+- Target merge: `main` repo utama dari branch kerja di fork (mis. `feature/master-barang`).
 - **README wajib**: install, env, migrasi, seed, cara jalankan BE/FE; lampirkan `.env.example` dengan nilai palsu; **screenshot** daftar + form.
 - `.env` asli jangan masuk git.
 - Reviewer harus bisa menjalankan proyek **hanya dari README**.
