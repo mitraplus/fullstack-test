@@ -133,6 +133,8 @@ Satu pola response untuk semua endpoint.
 }
 ```
 
+Untuk `DELETE` (soft delete), `data` berisi record barang yang bersangkutan dengan `is_aktif: false` — bukan objek kosong. Pesan boleh disesuaikan, mis. `"Barang berhasil dinonaktifkan."`.
+
 **Error — validasi (400)**
 
 ```json
@@ -168,6 +170,8 @@ Satu pola response untuk semua endpoint.
 | `harga_jual` | Required, angka ≥ `harga_beli` |
 | `is_aktif` | Boolean, default `true` pada create |
 
+Catatan untuk `PUT /api/barang/:id`: pengecekan unik `kode_barang` harus mengecualikan record itu sendiri (record boleh disimpan ulang dengan kode yang sama seperti sebelumnya, tanpa dianggap duplikat).
+
 ### 3.5 Query parameter — `GET /api/barang`
 
 | Parameter | Tipe | Contoh | Keterangan |
@@ -178,6 +182,13 @@ Satu pola response untuk semua endpoint.
 | `is_aktif` | boolean | `true` / `false` | Filter status (opsional) |
 | `id_kategori` | integer | `2` | Filter per kategori (opsional) |
 
+### 3.6 Catatan tambahan (di luar tabel di atas)
+
+- **Autentikasi/login tidak termasuk lingkup tes ini.** Semua endpoint `/api/*` boleh diakses tanpa token. Jangan habiskan waktu membangun modul login — fokus ke Master Barang.
+- **CORS**: backend wajib mengizinkan origin dari dev server frontend (mis. `http://localhost:5173` untuk Vite), karena FE dan BE berjalan di port berbeda saat development.
+- **`page` melebihi `totalPages`** atau **`id_kategori` yang tidak ada di `m_kategori`**: bukan error. Balas tetap `200` dengan `data: []` (array kosong) dan `pagination` menyesuaikan, bukan `404`/`400`.
+- Response `500` di 3.3 adalah fallback terakhir — jangan sampai error validasi atau not-found ikut jatuh ke sini karena `try/catch` yang terlalu umum.
+
 ---
 
 ## 4. Frontend — React · MUI atau Tailwind
@@ -185,6 +196,8 @@ Satu pola response untuk semua endpoint.
 ### 4.1 Struktur halaman Master Barang
 
 Satu modul: halaman **daftar** + **form** tambah/ubah. Routing: **React Router** atau **TanStack Router**.
+
+URL API backend wajib dibaca dari environment variable (mis. `VITE_API_URL` di Vite atau `REACT_APP_API_URL` di CRA), bukan di-hardcode di kode. Cantumkan variabel ini di `.env.example` frontend.
 
 **Halaman daftar — `/master/barang`**
 
