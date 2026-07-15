@@ -8,12 +8,12 @@
 <h1 align="center">Test Fullstack Mitraplus</h1>
 
 
-Tugas yang harus diselesaikan: modul **Master Barang** dari database, API (Express + Sequelize), sampai React yang **memanggil API** (bukan mock data). Baca dokumen ini sampai habis sebelum mulai mengerjakan.
+Tugas yang harus diselesaikan: modul **Master Barang**, dari API (Express) sampai React yang **memanggil API sungguhan** (frontend tidak boleh mock data sendiri). **Tidak perlu database engine** — data disimpan sebagai data mock/in-memory di sisi backend. Baca dokumen ini sampai habis sebelum mulai mengerjakan.
 
 | Aspek | Teknologi |
 |--------|-----------|
 | Stack | Node.js (Express) · React · GitHub |
-| Database | ORM - Sequelize, **MSSQL atau PostgreSQL** (pilih salah satu) |
+| Data layer | Mock data (JSON) yang di-load in-memory saat server start — **tidak perlu instalasi database** |
 | UI | **MUI (Material UI)** atau **Tailwind CSS** (pilih salah satu) |
 | Modul demo | Master Barang — CRUD lengkap |
 | Sifat dokumen | Dibagikan kepada rekrutan |
@@ -22,13 +22,12 @@ Tugas yang harus diselesaikan: modul **Master Barang** dari database, API (Expre
 
 ## 1. Ringkasan peran
 
-Kami mencari **fullstack**: API REST dengan Node (Express), database MSSQL atau PostgreSQL lewat Sequelize, dan React di depan yang benar-benar berkomunikasi dengan API. Alur kerja melalui **GitHub**: branch sendiri, lalu PR.
+Kami mencari **fullstack**: API REST dengan Node (Express) yang datanya disimpan sebagai mock/in-memory (tanpa database engine), dan React di depan yang benar-benar berkomunikasi dengan API tersebut. Tes ini sengaja tidak melibatkan setup database supaya fokus murni ke kualitas API dan integrasi frontend-backend. Alur kerja melalui **GitHub**: branch sendiri, lalu PR.
 
 | Area | Yang kami lihat |
 |------|------------------|
 | **GitHub** | Branch jelas, commit bermakna, PR ada konteks |
-| **Backend (Node + Express)** | CRUD jalan, input divalidasi, error tidak kacau |
-| **Database (Sequelize)** | Model + migrasi/sync, query aman (bukan string mentah sembarangan) |
+| **Backend (Node + Express)** | CRUD jalan, struktur data & validasi konsisten, error tidak kacau |
 | **Frontend (React)** | Tabel + form, CRUD nyambung ke API sungguhan |
 | **CRUD Master Barang** | Satu modul utuh: daftar, tambah, ubah, nonaktif/hapus |
 
@@ -57,26 +56,30 @@ Kirim **link PR**, bukan ZIP. Sertakan juga **link repository fork** Anda. Kami 
 
 ---
 
-## 3. Backend — Node.js · Express · Sequelize
+## 3. Backend — Node.js · Express (data mock/in-memory)
 
-### 3.1 Skema tabel: `m_barang`
+### 3.1 Struktur data: `barang`
 
-Buat tabel `m_barang` dengan kolom di bawah lewat model Sequelize (plus **migrasi atau sync** — terserah, asal jelas di README).
+**Tidak perlu database engine apa pun** (tanpa MSSQL, PostgreSQL, MySQL, SQLite, dsb.) dan **tidak perlu Sequelize atau ORM lain**. Data contoh sudah disediakan di root repo ini: **[`data/barang.json`](./data/barang.json)** dan **[`data/kategori.json`](./data/kategori.json)**. Salin kedua file ini ke dalam project backend Anda, lalu load ke array in-memory saat server start (mis. `let barang = require('./data/barang.json')`). Semua operasi CRUD memanipulasi array in-memory tersebut secara langsung di kode Node/Express biasa. Boleh menambah/mengubah isi data contoh ini sesuai kebutuhan.
 
-| Kolom | Tipe data | Constraint | Keterangan |
+Setiap record `barang` mengikuti struktur berikut:
+
+| Field | Tipe data | Constraint | Keterangan |
 |-------|-----------|------------|------------|
-| `id` | INTEGER / BIGINT | PK, auto increment | Primary key |
-| `kode_barang` | VARCHAR(50) | UNIQUE, NOT NULL | Kode unik barang |
-| `nama_barang` | VARCHAR(200) | NOT NULL | Nama lengkap barang |
-| `id_kategori` | INTEGER | FK → `m_kategori.id`, NOT NULL | Relasi ke master kategori |
-| `satuan` | VARCHAR(30) | NOT NULL | Contoh: pcs, kg, liter, box |
-| `harga_beli` | DECIMAL(18,2) | NOT NULL, DEFAULT 0 | Harga pembelian |
-| `harga_jual` | DECIMAL(18,2) | NOT NULL, DEFAULT 0 | Harga penjualan |
-| `is_aktif` | BOOLEAN / TINYINT(1) | NOT NULL, DEFAULT true | Status aktif/nonaktif |
-| `created_at` | TIMESTAMP | NOT NULL | Otomatis Sequelize |
-| `updated_at` | TIMESTAMP | NOT NULL | Otomatis Sequelize |
+| `id` | number | unik, auto increment (angka tertinggi + 1) | Primary key |
+| `kode_barang` | string | unik, required, max 50 karakter | Kode unik barang |
+| `nama_barang` | string | required, max 200 karakter | Nama lengkap barang |
+| `id_kategori` | number | required, harus ada di data `kategori` | Relasi ke master kategori |
+| `satuan` | string | required, max 30 karakter | Contoh: pcs, kg, liter, box |
+| `harga_beli` | number | required, default 0 | Harga pembelian |
+| `harga_jual` | number | required, default 0 | Harga penjualan |
+| `is_aktif` | boolean | default `true` | Status aktif/nonaktif |
+| `created_at` | ISO string | diisi otomatis saat create | — |
+| `updated_at` | ISO string | diisi otomatis saat create/update | — |
 
-**`m_kategori`**: cukup sederhana — `id`, `nama_kategori`. Sediakan **seed minimal tiga kategori** agar dropdown di frontend bisa dicoba.
+**`kategori`**: cukup sederhana — `id`, `nama_kategori`. Siapkan file `data/kategori.json` berisi **minimal tiga kategori** agar dropdown di frontend bisa dicoba langsung.
+
+Boleh juga dipakai library seperti `lowdb` untuk mempermudah baca/tulis file JSON, tapi ini opsional — array in-memory biasa sudah cukup dan tetap dinilai penuh.
 
 ### 3.2 Endpoint REST API — `/api/barang`
 
@@ -162,9 +165,9 @@ Untuk `DELETE` (soft delete), `data` berisi record barang yang bersangkutan deng
 
 | Field | Validasi wajib |
 |-------|----------------|
-| `kode_barang` | Required, unik (cek DB), max 50 karakter, hanya alfanumerik + tanda hubung |
+| `kode_barang` | Required, unik (cek terhadap data yang sudah ada), max 50 karakter, hanya alfanumerik + tanda hubung |
 | `nama_barang` | Required, max 200 karakter |
-| `id_kategori` | Required, harus ada di `m_kategori` |
+| `id_kategori` | Required, harus ada di data `kategori` |
 | `satuan` | Required, max 30 karakter |
 | `harga_beli` | Required, angka ≥ 0 |
 | `harga_jual` | Required, angka ≥ `harga_beli` |
@@ -186,8 +189,9 @@ Catatan untuk `PUT /api/barang/:id`: pengecekan unik `kode_barang` harus mengecu
 
 - **Autentikasi/login tidak termasuk lingkup tes ini.** Semua endpoint `/api/*` boleh diakses tanpa token. Jangan habiskan waktu membangun modul login — fokus ke Master Barang.
 - **CORS**: backend wajib mengizinkan origin dari dev server frontend (mis. `http://localhost:5173` untuk Vite), karena FE dan BE berjalan di port berbeda saat development.
-- **`page` melebihi `totalPages`** atau **`id_kategori` yang tidak ada di `m_kategori`**: bukan error. Balas tetap `200` dengan `data: []` (array kosong) dan `pagination` menyesuaikan, bukan `404`/`400`.
+- **`page` melebihi `totalPages`** atau **`id_kategori` yang tidak ada di data kategori**: bukan error. Balas tetap `200` dengan `data: []` (array kosong) dan `pagination` menyesuaikan, bukan `404`/`400`.
 - Response `500` di 3.3 adalah fallback terakhir — jangan sampai error validasi atau not-found ikut jatuh ke sini karena `try/catch` yang terlalu umum.
+- **Data reset setiap restart server itu normal.** Karena disimpan in-memory (bukan database), perubahan (tambah/ubah/hapus) hilang saat proses backend di-restart dan kembali ke isi `data/barang.json` semula. Ini bukan bug — tidak perlu dibuat persisten ke disk kecuali Anda mau menambahkannya sebagai nilai tambah.
 
 ---
 
@@ -255,7 +259,7 @@ URL API backend wajib dibaca dari environment variable (mis. `VITE_API_URL` di V
 
 Checklist dari nol sampai PR. Reviewer harus bisa mengulang hanya mengikuti **README Anda** — tanpa langkah rahasia.
 
-1. **Setup** — Clone → `npm install` → salin `.env.example` → migrasi/sync Sequelize → seed kategori → jalankan BE dan FE. Semua langkah ini harus ada di README.
+1. **Setup** — Clone → `npm install` (BE & FE) → salin `.env.example` (BE & FE) → jalankan BE (data mock ter-load otomatis dari `data/*.json`) → jalankan FE. Tidak ada langkah instalasi database. Semua langkah ini harus ada di README.
 2. **Daftar barang** — Buka `/master/barang` → FE memanggil `GET /api/barang?page=1&limit=10` → tabel + paginasi; status terlihat (chip atau sejenisnya).
 3. **Cari & filter** — Ketik di search (mis. `kertas`) → setelah debounce, request dengan `search` → tabel update. Filter kategori kirim `id_kategori`.
 4. **Tambah** — Form baru → `POST /api/barang` → jika lolos validasi, **201** → kembali ke daftar + notifikasi sukses.
@@ -273,9 +277,8 @@ Total **100 poin**; angka per blok dapat disesuaikan secara internal.
 | Area | Poin | Kriteria minimum | Kriteria unggul |
 |------|------|------------------|-----------------|
 | GitHub (PR & commit) | 15 | Branch terpisah, PR ada deskripsi, tidak ada secret ter-commit | Commit atomik & bermakna, README lengkap, CI/Actions jalan |
-| Backend (Express + Sequelize) | 30 | 6 endpoint jalan, validasi dasar, error code benar | Validasi lengkap, envelope konsisten, query efisien, transaksi |
-| Database (schema & relasi) | 15 | `m_barang` sesuai skema, FK ke kategori | Migrasi terstruktur, seed, index pada `kode_barang` |
-| Frontend (React + UI) | 25 | Tabel + form terhubung API, loading & error state ada | React Query, TypeScript, komponen reusable, UX halus |
+| Backend (Express + struktur data) | 40 | 6 endpoint jalan, validasi dasar, error code benar, relasi ke kategori benar | Validasi lengkap, envelope konsisten, kode terorganisir (route/controller/service terpisah), penanganan edge case rapi |
+| Frontend (React + UI) | 30 | Tabel + form terhubung API, loading & error state ada | React Query, TypeScript, komponen reusable, UX halus |
 | Alur CRUD (end-to-end) | 15 | Create, read, update, delete/nonaktif tanpa error | Validasi sinkron FE-BE, konfirmasi delete, toast feedback |
 
 ---
@@ -288,8 +291,7 @@ Total **100 poin**; angka per blok dapat disesuaikan secara internal.
 |-------|-----------|---------|
 | Runtime | Node.js ≥ 18 | — |
 | Framework | Express.js | Wajib |
-| ORM | Sequelize v6+ | Wajib; raw query diperbolehkan sebagai pelengkap |
-| Database | MSSQL atau PostgreSQL | Pilih salah satu |
+| Data layer | Array in-memory dari file JSON (`data/*.json`) | Wajib; tidak perlu database engine atau ORM |
 | Frontend | React (Vite atau CRA) | Wajib |
 | UI | MUI v5+ atau Tailwind CSS v3+ | Pilih salah satu |
 | Routing | React Router v6+ atau TanStack Router | — |
@@ -300,7 +302,7 @@ Total **100 poin**; angka per blok dapat disesuaikan secara internal.
 - Kirim **link PR** dari fork ke repo utama (`mitraplus/fullstack-test`) — **bukan** arsip ZIP.
 - Sertakan **link repository fork** Anda.
 - Target merge: `main` repo utama dari branch kerja di fork (mis. `feature/master-barang`).
-- **README wajib**: install, env, migrasi, seed, cara jalankan BE/FE; lampirkan `.env.example` dengan nilai palsu; **screenshot** daftar + form.
+- **README wajib**: install, env, cara jalankan BE/FE; lampirkan `.env.example` dengan nilai palsu; **screenshot** daftar + form.
 - `.env` asli jangan masuk git.
 - Reviewer harus bisa menjalankan proyek **hanya dari README**.
 - Batas waktu adalah 2 minggu, mulai saat task diberikan.
